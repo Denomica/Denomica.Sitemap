@@ -30,11 +30,15 @@ var provider = new ServiceCollection()
 var crawler = provider.GetRequiredService<SitemapCrawler>();
 await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com")))
 {
-	Console.WriteLine(pageUrl);
+	Console.WriteLine(pageUrl.Location);
 }
 ```
 
 ## Version Hightlights
+
+### v1.0.0-alpha.2
+
+- Modified the return type of the `CrawlAsync` method to return an async enumerable of `UrlsetUrl` objects.
 
 ### v1.0.0-alpha.1
 

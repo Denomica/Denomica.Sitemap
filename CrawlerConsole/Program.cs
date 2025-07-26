@@ -16,5 +16,5 @@ await foreach(var u in crawler.CrawlAsync(new Uri(url)))
     counter++;
     Console.Write($"{counter:D4}");
     Console.Write(": ");
-    Console.WriteLine(u);
+    Console.WriteLine(u.Location);
 }

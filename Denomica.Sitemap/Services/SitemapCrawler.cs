@@ -45,7 +45,7 @@ namespace Denomica.Sitemap.Services
         /// the URL does not point to a valid XML document, the method will attempt to find sitemaps from the site.
         /// </param>
         /// <returns>An asynchronous stream of <see cref="Uri"/> objects representing the URLs found in the sitemaps.</returns>
-        public async IAsyncEnumerable<Uri> CrawlAsync(Uri url)
+        public async IAsyncEnumerable<UrlsetUrl> CrawlAsync(Uri url)
         {
             var xmlDoc = await this.DownloadXmlDocumentAsync(url);
             if (null != xmlDoc)
@@ -156,7 +156,7 @@ namespace Denomica.Sitemap.Services
         /// document adheres to the sitemap protocol as defined by sitemaps.org.</remarks>
         /// <param name="doc">The XML document containing the sitemap data. Must not be <see langword="null"/>.</param>
         /// <returns>An asynchronous stream of <see cref="Uri"/> objects representing the URLs found in the sitemap.</returns>
-        private async IAsyncEnumerable<Uri> EnumerateSitemapUrlsAsync(XmlDocument doc)
+        private async IAsyncEnumerable<UrlsetUrl> EnumerateSitemapUrlsAsync(XmlDocument doc)
         {
             var nsMan = new XmlNamespaceManager(doc.NameTable);
             nsMan.AddNamespace("sitemap", "http://www.sitemaps.org/schemas/sitemap/0.9");
@@ -171,12 +171,19 @@ namespace Denomica.Sitemap.Services
                     }
                 }
             }
-
-            foreach (XmlNode node in doc.SelectNodes("sitemap:urlset/sitemap:url/sitemap:loc", nsMan))
+            
+            foreach (XmlNode node in doc.SelectNodes("sitemap:urlset/sitemap:url", nsMan))
             {
-                if (Uri.TryCreate(node.InnerText, UriKind.Absolute, out var pageUrl))
+                var locNode = node.SelectSingleNode("sitemap:loc", nsMan);
+                var modNode = node.SelectSingleNode("sitemap:lastmod", nsMan);
+                if (Uri.TryCreate(locNode.InnerText, UriKind.Absolute, out var pageUrl))
                 {
-                    yield return pageUrl;
+                    DateTimeOffset? dt = null;
+                    if(DateTimeOffset.TryParse(modNode?.InnerText, out DateTimeOffset dto))
+                    {
+                        dt = dto;
+                    }
+                    yield return new UrlsetUrl { Location = pageUrl, LastModified = dt };
                 }
             }
         }
@@ -188,7 +195,7 @@ namespace Denomica.Sitemap.Services
         /// each URL contained within it.</remarks>
         /// <param name="url">The URI of the sitemap to be processed.</param>
         /// <returns>An asynchronous stream of <see cref="Uri"/> objects representing the URLs found in the sitemap.</returns>
-        private async IAsyncEnumerable<Uri> EnumerateSitemapUrlsAsync(Uri url)
+        private async IAsyncEnumerable<UrlsetUrl> EnumerateSitemapUrlsAsync(Uri url)
         {
             var doc = await this.DownloadXmlDocumentAsync(url);
             if (null != doc)

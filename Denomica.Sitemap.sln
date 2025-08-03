@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrawlerConsole", "CrawlerConsole\CrawlerConsole.csproj", "{1333DA07-07A9-4579-8C8B-FDF16A043F38}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample Apps", "Sample Apps", "{832CEEA8-975E-4036-8B9D-C7518536E128}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentExtractor", "ContentExtractor\ContentExtractor.csproj", "{AD7F92CB-7123-4BFF-9392-A759CD73B4F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,12 +31,17 @@ Global
 		{1333DA07-07A9-4579-8C8B-FDF16A043F38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1333DA07-07A9-4579-8C8B-FDF16A043F38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1333DA07-07A9-4579-8C8B-FDF16A043F38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD7F92CB-7123-4BFF-9392-A759CD73B4F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD7F92CB-7123-4BFF-9392-A759CD73B4F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD7F92CB-7123-4BFF-9392-A759CD73B4F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD7F92CB-7123-4BFF-9392-A759CD73B4F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1333DA07-07A9-4579-8C8B-FDF16A043F38} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{1333DA07-07A9-4579-8C8B-FDF16A043F38} = {832CEEA8-975E-4036-8B9D-C7518536E128}
+		{AD7F92CB-7123-4BFF-9392-A759CD73B4F7} = {832CEEA8-975E-4036-8B9D-C7518536E128}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE812E16-D9B9-4B1B-8F87-B40583F59A03}

@@ -36,6 +36,10 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.0-beta.1
+
+- Added overloaded `CrawlAsync` method that accepts a `string` parameter to specify the base URL of the site to crawl.
+
 ### v1.0.0-alpha.2
 
 - Modified the return type of the `CrawlAsync` method to return an async enumerable of `UrlsetUrl` objects.

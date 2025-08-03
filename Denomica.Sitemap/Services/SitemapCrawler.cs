@@ -89,6 +89,20 @@ namespace Denomica.Sitemap.Services
             }
         }
 
+        /// <summary>
+        /// Asynchronously crawls the specified URL and retrieves a sequence of <see cref="UrlsetUrl"/> objects.
+        /// </summary>
+        /// <param name="url">The URL to crawl. Must be a valid, absolute URL.</param>
+        /// <returns>An asynchronous stream of <see cref="UrlsetUrl"/> objects representing the crawled data.</returns>
+        public async IAsyncEnumerable<UrlsetUrl> CrawlAsync(string url)
+        {
+            var uri = new Uri(url);
+            await foreach(var set in  this.CrawlAsync(uri))
+            {
+                yield return set;
+            }
+        }
+
 
 
         /// <summary>

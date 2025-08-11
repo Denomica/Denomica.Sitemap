@@ -36,7 +36,7 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
-### v1.0.0-beta.2
+### v1.0.0-beta.3
 
 - Changed the user agent string that the crawler uses.
 

@@ -36,6 +36,10 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.0-beta.2
+
+- Added support for crawling sitemaps that use an XML namespace other than the default `http://www.sitemaps.org/schemas/sitemap/0.9`. Many sites seem to incorrectly use a namespace with `https` prefix.
+
 ### v1.0.0-beta.1
 
 - Added overloaded `CrawlAsync` method that accepts a `string` parameter to specify the base URL of the site to crawl.

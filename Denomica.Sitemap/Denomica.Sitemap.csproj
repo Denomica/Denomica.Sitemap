@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<Nullable>enable</Nullable>
-		<Version>1.0.0-beta.1</Version>
+		<Version>1.0.0-beta.2</Version>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/Denomica/Denomica.Sitemap</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>

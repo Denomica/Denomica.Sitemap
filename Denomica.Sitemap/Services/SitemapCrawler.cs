@@ -172,8 +172,30 @@ namespace Denomica.Sitemap.Services
         /// <returns>An asynchronous stream of <see cref="Uri"/> objects representing the URLs found in the sitemap.</returns>
         private async IAsyncEnumerable<UrlsetUrl> EnumerateSitemapUrlsAsync(XmlDocument doc)
         {
+            await foreach(var url in this.EnumerateSitemapUrlsAsync(doc, "http://www.sitemaps.org/schemas/sitemap/0.9"))
+            {
+                yield return url;
+            }
+
+            await foreach (var url in this.EnumerateSitemapUrlsAsync(doc, "https://www.sitemaps.org/schemas/sitemap/0.9"))
+            {
+                yield return url;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously enumerates all URLs found in a sitemap XML document using the specified XML namespace.
+        /// </summary>
+        /// <param name="doc">
+        /// The XML document containing the sitemap data. This document should conform to the sitemap protocol
+        /// </param>
+        /// <param name="xmlNamespace">
+        /// The XML namespace to use for selecting nodes in the document. This is typically "http://www.sitemaps.org/schemas/sitemap/0.9"
+        /// </param>
+        private async IAsyncEnumerable<UrlsetUrl> EnumerateSitemapUrlsAsync(XmlDocument doc, string xmlNamespace)
+        {
             var nsMan = new XmlNamespaceManager(doc.NameTable);
-            nsMan.AddNamespace("sitemap", "http://www.sitemaps.org/schemas/sitemap/0.9");
+            nsMan.AddNamespace("sitemap", xmlNamespace);
 
             foreach (XmlNode node in doc.SelectNodes("sitemap:sitemapindex/sitemap:sitemap/sitemap:loc", nsMan))
             {
@@ -185,7 +207,7 @@ namespace Denomica.Sitemap.Services
                     }
                 }
             }
-            
+
             foreach (XmlNode node in doc.SelectNodes("sitemap:urlset/sitemap:url", nsMan))
             {
                 var locNode = node.SelectSingleNode("sitemap:loc", nsMan);
@@ -193,7 +215,7 @@ namespace Denomica.Sitemap.Services
                 if (Uri.TryCreate(locNode.InnerText, UriKind.Absolute, out var pageUrl))
                 {
                     DateTimeOffset? dt = null;
-                    if(DateTimeOffset.TryParse(modNode?.InnerText, out DateTimeOffset dto))
+                    if (DateTimeOffset.TryParse(modNode?.InnerText, out DateTimeOffset dto))
                     {
                         dt = dto;
                     }

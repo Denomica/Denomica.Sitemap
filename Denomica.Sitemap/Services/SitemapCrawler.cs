@@ -1,4 +1,5 @@
 ﻿using Denomica.Sitemap.Configuration;
+using Denomica.Sitemap.Model;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -172,12 +173,12 @@ namespace Denomica.Sitemap.Services
         /// <returns>An asynchronous stream of <see cref="Uri"/> objects representing the URLs found in the sitemap.</returns>
         private async IAsyncEnumerable<UrlsetUrl> EnumerateSitemapUrlsAsync(XmlDocument doc)
         {
-            await foreach(var url in this.EnumerateSitemapUrlsAsync(doc, "http://www.sitemaps.org/schemas/sitemap/0.9"))
+            await foreach(var url in this.EnumerateSitemapUrlsAsync(doc, Constants.SchemaNamespace1))
             {
                 yield return url;
             }
 
-            await foreach (var url in this.EnumerateSitemapUrlsAsync(doc, "https://www.sitemaps.org/schemas/sitemap/0.9"))
+            await foreach (var url in this.EnumerateSitemapUrlsAsync(doc, Constants.SchemaNamespace2))
             {
                 yield return url;
             }
@@ -196,6 +197,7 @@ namespace Denomica.Sitemap.Services
         {
             var nsMan = new XmlNamespaceManager(doc.NameTable);
             nsMan.AddNamespace("sitemap", xmlNamespace);
+            nsMan.AddNamespace("image", Constants.ImageSchemaNamespace);
 
             foreach (XmlNode node in doc.SelectNodes("sitemap:sitemapindex/sitemap:sitemap/sitemap:loc", nsMan))
             {
@@ -212,6 +214,7 @@ namespace Denomica.Sitemap.Services
             {
                 var locNode = node.SelectSingleNode("sitemap:loc", nsMan);
                 var modNode = node.SelectSingleNode("sitemap:lastmod", nsMan);
+
                 if (Uri.TryCreate(locNode.InnerText, UriKind.Absolute, out var pageUrl))
                 {
                     DateTimeOffset? dt = null;
@@ -219,7 +222,22 @@ namespace Denomica.Sitemap.Services
                     {
                         dt = dto;
                     }
-                    yield return new UrlsetUrl { Location = pageUrl, LastModified = dt };
+                    Image? img = null;
+                    var imageNode = node.SelectSingleNode("image:image", nsMan);
+                    if(null != imageNode)
+                    {
+                        img = new Image();
+                        var imageLocNode = imageNode.SelectSingleNode("image:loc", nsMan);
+                        if(Uri.TryCreate(imageLocNode.InnerText, UriKind.Absolute, out var imageLoc))
+                        {
+                            img.Location = imageLoc;
+                        }
+
+                        img.Title = imageNode?.SelectSingleNode("image:title", nsMan)?.InnerText;
+                        img.Caption = imageNode?.SelectSingleNode("image:caption", nsMan)?.InnerText;
+                    }
+
+                    yield return new UrlsetUrl { Location = pageUrl, LastModified = dt, Image = img };
                 }
             }
         }

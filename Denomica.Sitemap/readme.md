@@ -36,6 +36,11 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.0-beta.4
+
+- Moved the `UrlSetUrl` class to the `Denomica.Sitemap.Models` namespace.
+- Added support for images defined in sitemap files. The `UrlsetUrl` class now includes an `Image` property that contains a list of images defined in the sitemap. The `Image` property is `null` if no images are defined in the sitemap. 
+
 ### v1.0.0-beta.3
 
 - Changed the user agent string that the crawler uses.

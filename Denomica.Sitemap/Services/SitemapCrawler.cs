@@ -117,19 +117,31 @@ namespace Denomica.Sitemap.Services
         /// <see langword="null"/>.</returns>
         private async Task<XmlDocument?> DownloadXmlDocumentAsync(Uri url)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            try
+            string? xml = null;
+            if(url.Scheme == "file")
             {
+                xml = await System.IO.File.ReadAllTextAsync(url.LocalPath);
+            }
+            else
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
                 var response = await this.Client.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
-                    var xml = await response.Content.ReadAsStringAsync();
-                    var xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(xml);
-                    return xmlDoc;
+                    xml = await response.Content.ReadAsStringAsync();
                 }
             }
-            catch { }
+
+            if (xml?.Length > 0)
+            {
+                try
+                {
+                    var doc = new XmlDocument();
+                    doc.LoadXml(xml);
+                    return doc;
+                }
+                catch { }
+            }
 
             return null;
         }

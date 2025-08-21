@@ -36,6 +36,11 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.0
+
+- The first stable version.
+- Added support for crawling sitemap XML files from the local file system. The `CrawlAsync` method now accepts a `Uri` parameter that can be a local file path or a URL.
+
 ### v1.0.0-beta.4
 
 - Moved the `UrlSetUrl` class to the `Denomica.Sitemap.Models` namespace.

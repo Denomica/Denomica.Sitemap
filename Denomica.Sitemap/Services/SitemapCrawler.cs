@@ -112,7 +112,7 @@ namespace Denomica.Sitemap.Services
         /// <remarks>This method sends an HTTP GET request to the specified URL and attempts to parse the
         /// response content as an XML document. If the request fails or the response cannot be parsed as XML, the
         /// method returns <see langword="null"/>.</remarks>
-        /// <param name="url">The URL from which to download the XML document. Must be a valid URI.</param>
+        /// <param name="url">The URL from which to download the XML document. Must be a valid URI. This can be either a HTTP(s) URI or a URI pointing to a local file. Local files must also be valid Sitemap XML files.</param>
         /// <returns>An <see cref="XmlDocument"/> containing the downloaded XML data if the request is successful; otherwise,
         /// <see langword="null"/>.</returns>
         private async Task<XmlDocument?> DownloadXmlDocumentAsync(Uri url)

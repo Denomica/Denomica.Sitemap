@@ -35,6 +35,75 @@ namespace Denomica.Sitemap.Services
         private readonly HttpClient Client;
 
         /// <summary>
+        /// Asynchronously determines whether the specified URL can be crawled for sitemap data.
+        /// </summary>
+        /// <remarks>This method follows the same discovery order as <see cref="CrawlAsync(Uri)"/>. It returns <see
+        /// langword="true"/> when the supplied URL resolves to a valid sitemap document directly, through a sitemap
+        /// location declared in robots.txt, or through a default sitemap location. Valid sitemap documents may be
+        /// empty. If the supplied URL resolves to XML that is not a sitemap document, the method returns <see
+        /// langword="false"/> without continuing to other discovery mechanisms to match <see cref="CrawlAsync(Uri)"/>'s
+        /// current behavior. A return value of <see langword="false"/> indicates that <see cref="CrawlAsync(Uri)"/>
+        /// will not yield any items for the same input and may throw before or during enumeration.</remarks>
+        /// <param name="url">The URL to evaluate. This can be either a HTTP(S) URI or a URI pointing to a local file
+        /// containing sitemap XML.</param>
+        /// <returns><see langword="true"/> if the supplied URL can be used with <see cref="CrawlAsync(Uri)"/> to
+        /// resolve a valid sitemap document; otherwise, <see langword="false"/>.</returns>
+        public async Task<bool> CanCrawlAsync(Uri url)
+        {
+            try
+            {
+                var xmlDoc = await this.DownloadXmlDocumentAsync(url);
+                if (null != xmlDoc)
+                {
+                    return IsSitemapDocument(xmlDoc);
+                }
+
+                int sitemapCount = 0;
+                var sitemaps = this.RobotsParser.GetSitemapsAsync(url);
+                await foreach (var sitemap in sitemaps)
+                {
+                    sitemapCount++;
+                    if (await this.CanCrawlAsync(sitemap))
+                    {
+                        return true;
+                    }
+                }
+
+                if (sitemapCount == 0)
+                {
+                    await foreach (var sitemap in this.EnumerateDefaultSitemapsAsync(url))
+                    {
+                        xmlDoc = await this.DownloadXmlDocumentAsync(sitemap);
+                        if (null != xmlDoc && IsSitemapDocument(xmlDoc))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Asynchronously determines whether the specified URL can be crawled for sitemap data.
+        /// </summary>
+        /// <remarks>This overload parses the supplied URL string into a <see cref="Uri"/> and delegates to <see
+        /// cref="CanCrawlAsync(Uri)"/>.</remarks>
+        /// <param name="url">The absolute URL to evaluate.</param>
+        /// <returns><see langword="true"/> if the supplied URL can be used with <see cref="CrawlAsync(string)"/> to
+        /// resolve a valid sitemap document; otherwise, <see langword="false"/>.</returns>
+        public async Task<bool> CanCrawlAsync(string url)
+        {
+            var uri = new Uri(url);
+            return await this.CanCrawlAsync(uri);
+        }
+
+        /// <summary>
         /// Asynchronously crawls the specified URL to discover and yield URLs specified in a sitemap.
         /// </summary>
         /// <remarks>The method first attempts to download and parse an XML document from the specified
@@ -144,6 +213,23 @@ namespace Denomica.Sitemap.Services
             }
 
             return null;
+        }
+
+        private static bool IsSitemapDocument(XmlDocument document)
+        {
+            var root = document.DocumentElement;
+            if (null == root)
+            {
+                return false;
+            }
+
+            if (root.LocalName != "urlset" && root.LocalName != "sitemapindex")
+            {
+                return false;
+            }
+
+            return root.NamespaceURI == Constants.SchemaNamespace1
+                || root.NamespaceURI == Constants.SchemaNamespace2;
         }
 
         /// <summary>

@@ -36,6 +36,10 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.1
+
+- Added `SitemapCrawler.CanCrawlAsync` method that checks if a given URL can be crawled by the `SitemapCrawler` service. This method can be used to check if a URL is a sitemap XML file before attempting to crawl it.
+
 ### v1.0.0
 
 - The first stable version.

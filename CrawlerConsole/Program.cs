@@ -9,12 +9,18 @@ var provider = new ServiceCollection()
     .BuildServiceProvider();
 
 var url = args[0];
+var uri = new Uri(url);
 var crawler = provider.GetRequiredService<SitemapCrawler>();
 int counter = 0;
-await foreach(var u in crawler.CrawlAsync(new Uri(url)))
+
+var canCrawl = await crawler.CanCrawlAsync(uri);
+if(canCrawl)
 {
-    counter++;
-    Console.Write($"{counter:D4}");
-    Console.Write(": ");
-    Console.WriteLine(u.Location);
+    await foreach (var u in crawler.CrawlAsync(uri))
+    {
+        counter++;
+        Console.Write($"{counter:D4}");
+        Console.Write(": ");
+        Console.WriteLine(u.Location);
+    }
 }

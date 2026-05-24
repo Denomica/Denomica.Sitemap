@@ -36,6 +36,12 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.2
+
+- Unified sitemap discovery in `SitemapCrawler` so `CanCrawlAsync` and `CrawlAsync` use the same logic to resolve sitemap documents.
+- Improved default sitemap discovery by probing standard sitemap locations with the same GET-based logic used by the crawler, which fixes sites where `GET` succeeds or redirects but `HEAD` does not.
+- Updated discovery fallback behavior so default sitemap locations are still checked when robots.txt lists sitemap URLs that do not resolve to a valid sitemap.
+
 ### v1.0.1
 
 - Added `SitemapCrawler.CanCrawlAsync` method that checks if a given URL can be crawled by the `SitemapCrawler` service. This method can be used to check if a URL is a sitemap XML file before attempting to crawl it.

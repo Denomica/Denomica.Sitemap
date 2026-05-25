@@ -36,6 +36,11 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 
 ## Version Hightlights
 
+### v1.0.3
+
+- Added explicit `301` and `302` redirect following as a fallback for sitemap requests in cases where automatic redirect following does not always work reliably.
+- Preserved the final resolved target URL after redirect fallback so sitemap discovery continues from the redirected sitemap location.
+
 ### v1.0.2
 
 - Unified sitemap discovery in `SitemapCrawler` so `CanCrawlAsync` and `CrawlAsync` use the same logic to resolve sitemap documents.

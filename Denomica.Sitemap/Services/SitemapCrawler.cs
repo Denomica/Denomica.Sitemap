@@ -2,6 +2,7 @@
 using Denomica.Sitemap.Model;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace Denomica.Sitemap.Services
     /// operations to efficiently handle network requests and XML parsing.</remarks>
     public class SitemapCrawler
     {
+        private const int MaxRedirectCount = 10;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SitemapCrawler"/> class with the specified robots.txt parser
         /// and HTTP client factory.
@@ -147,8 +150,7 @@ namespace Denomica.Sitemap.Services
             }
             else
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                using var response = await this.Client.SendAsync(request);
+                using var response = await this.SendRequestAsync(url, HttpMethod.Get);
                 resolvedUri = response.RequestMessage?.RequestUri ?? url;
                 if (response.IsSuccessStatusCode)
                 {
@@ -400,9 +402,38 @@ namespace Denomica.Sitemap.Services
         /// received from the server.</returns>
         private async Task<HttpResponseMessage> SendRequestAsync(Uri url, HttpMethod method)
         {
-            var request = new HttpRequestMessage(method, url);
+            return await this.SendRequestAsync(url, method, 0);
+        }
+
+        private async Task<HttpResponseMessage> SendRequestAsync(Uri url, HttpMethod method, int redirectCount)
+        {
+            if (redirectCount >= MaxRedirectCount)
+            {
+                throw new HttpRequestException($"Too many redirects while requesting '{url}'.");
+            }
+
+            using var request = new HttpRequestMessage(method, url);
             var response = await this.Client.SendAsync(request);
-            return response;
+
+            if (response.StatusCode != HttpStatusCode.MovedPermanently
+                && response.StatusCode != HttpStatusCode.Found)
+            {
+                return response;
+            }
+
+            var redirectLocation = response.Headers.Location;
+            if (null == redirectLocation)
+            {
+                return response;
+            }
+
+            var requestUri = response.RequestMessage?.RequestUri ?? url;
+            var redirectUri = redirectLocation.IsAbsoluteUri
+                ? redirectLocation
+                : new Uri(requestUri, redirectLocation);
+
+            response.Dispose();
+            return await this.SendRequestAsync(redirectUri, method, redirectCount + 1);
         }
 
     }

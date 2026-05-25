@@ -8,10 +8,12 @@ var provider = new ServiceCollection()
     .Services
     .BuildServiceProvider();
 
+var crawler = provider.GetRequiredService<SitemapCrawler>();
+
 var url = args[0];
 var uri = new Uri(url);
-var crawler = provider.GetRequiredService<SitemapCrawler>();
 int counter = 0;
+
 
 var canCrawl = await crawler.CanCrawlAsync(uri);
 if(canCrawl)

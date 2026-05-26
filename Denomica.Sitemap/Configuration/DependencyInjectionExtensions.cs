@@ -26,10 +26,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         client.DefaultRequestHeaders.Add("User-Agent", Constants.DefaultUserAgent);
                         client.DefaultRequestHeaders.Add("Connection", "keep-alive");
                     })
-                    .AddHttpMessageHandler(() =>
-                    {
-                        return new RefererDelegatingHandler();
-                    })
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
                     {
                         AllowAutoRedirect = true,

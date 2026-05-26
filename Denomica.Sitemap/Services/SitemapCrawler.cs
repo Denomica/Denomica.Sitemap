@@ -43,12 +43,11 @@ namespace Denomica.Sitemap.Services
         /// <remarks>This method uses the same sitemap discovery pipeline as <see cref="CrawlAsync(Uri)"/>. It returns
         /// <see langword="true"/> when the supplied URL resolves to at least one valid sitemap document, either
         /// directly, through a sitemap location declared in robots.txt, or through a default sitemap location. Valid
-        /// sitemap documents may be empty. If the supplied URL resolves to XML that is not a sitemap document, the
-        /// method returns <see langword="false"/> without continuing to other discovery mechanisms to match <see
-        /// cref="CrawlAsync(Uri)"/>'s current behavior for direct XML inputs. A return value of <see
-        /// langword="false"/> indicates that the shared sitemap discovery used by <see cref="CrawlAsync(Uri)"/> will
-        /// not resolve a valid sitemap document for the same input, and <see cref="CrawlAsync(Uri)"/> may still throw
-        /// before or during enumeration.</remarks>
+        /// sitemap documents may be empty. If the supplied URL resolves to XML that is not a sitemap document, that
+        /// result is treated as a miss and discovery continues through the remaining mechanisms. A return value of
+        /// <see langword="false"/> indicates that the shared sitemap discovery used by <see cref="CrawlAsync(Uri)"/>
+        /// did not resolve a valid sitemap document for the same input, and <see cref="CrawlAsync(Uri)"/> may still
+        /// throw before or during enumeration.</remarks>
         /// <param name="url">The URL to evaluate. This can be either a HTTP(S) URI or a URI pointing to a local file
         /// containing sitemap XML.</param>
         /// <returns><see langword="true"/> if the shared sitemap discovery used by <see cref="CrawlAsync(Uri)"/>
@@ -91,8 +90,8 @@ namespace Denomica.Sitemap.Services
         /// <remarks>This method uses the same sitemap discovery pipeline as <see cref="CanCrawlAsync(Uri)"/>. It first
         /// probes the supplied URL directly, then checks sitemap locations declared in robots.txt, and finally checks
         /// standard default sitemap locations when the earlier discovery steps do not resolve to a valid sitemap.
-        /// If the supplied URL resolves to XML that is not a sitemap document, the method does not continue to other
-        /// discovery mechanisms for that input.</remarks>
+        /// If the supplied URL resolves to XML that is not a sitemap document, that result is treated as a miss and
+        /// the method continues to the remaining discovery mechanisms for that input.</remarks>
         /// <param name="url">
         /// The starting <see cref="Uri"/> to begin crawling from. This URL can either point directly to a sitemap XML. If
         /// the URL does not point to a valid XML document, the method will attempt to find sitemaps from the site.
@@ -177,7 +176,7 @@ namespace Denomica.Sitemap.Services
             var visitedInputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var discoveredSitemaps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            await foreach (var sitemap in this.DiscoverSitemapDocumentsAsync(url, true, visitedInputs, discoveredSitemaps))
+            await foreach (var sitemap in this.DiscoverSitemapDocumentsAsync(url, visitedInputs, discoveredSitemaps))
             {
                 yield return sitemap;
             }
@@ -185,7 +184,6 @@ namespace Denomica.Sitemap.Services
 
         private async IAsyncEnumerable<(Uri SitemapUri, XmlDocument Document)> DiscoverSitemapDocumentsAsync(
             Uri url,
-            bool allowFallbackDiscovery,
             HashSet<string> visitedInputs,
             HashSet<string> discoveredSitemaps)
         {
@@ -197,23 +195,21 @@ namespace Denomica.Sitemap.Services
             var (resolvedUri, xmlDocument) = await this.DownloadXmlDocumentWithResolvedUriAsync(url);
             if (null != xmlDocument)
             {
-                if (IsSitemapDocument(xmlDocument) && discoveredSitemaps.Add(GetUriKey(resolvedUri)))
+                if (IsSitemapDocument(xmlDocument))
                 {
-                    yield return (resolvedUri, xmlDocument);
+                    if (discoveredSitemaps.Add(GetUriKey(resolvedUri)))
+                    {
+                        yield return (resolvedUri, xmlDocument);
+                    }
+
+                    yield break;
                 }
-
-                yield break;
-            }
-
-            if (!allowFallbackDiscovery)
-            {
-                yield break;
             }
 
             bool foundRobotsSitemap = false;
             await foreach (var sitemap in this.RobotsParser.GetSitemapsAsync(url))
             {
-                foreach (var discovered in await this.DiscoverSitemapDocumentsSafeAsync(sitemap, true, visitedInputs, discoveredSitemaps))
+                foreach (var discovered in await this.DiscoverSitemapDocumentsSafeAsync(sitemap, visitedInputs, discoveredSitemaps))
                 {
                     foundRobotsSitemap = true;
                     yield return discovered;
@@ -227,7 +223,7 @@ namespace Denomica.Sitemap.Services
 
             foreach (var sitemap in this.EnumerateDefaultSitemaps(url))
             {
-                foreach (var discovered in await this.DiscoverSitemapDocumentsSafeAsync(sitemap, false, visitedInputs, discoveredSitemaps))
+                foreach (var discovered in await this.DiscoverSitemapDocumentsSafeAsync(sitemap, visitedInputs, discoveredSitemaps))
                 {
                     yield return discovered;
                 }
@@ -236,7 +232,6 @@ namespace Denomica.Sitemap.Services
 
         private async Task<List<(Uri SitemapUri, XmlDocument Document)>> DiscoverSitemapDocumentsSafeAsync(
             Uri url,
-            bool allowFallbackDiscovery,
             HashSet<string> visitedInputs,
             HashSet<string> discoveredSitemaps)
         {
@@ -244,7 +239,7 @@ namespace Denomica.Sitemap.Services
 
             try
             {
-                await foreach (var discovered in this.DiscoverSitemapDocumentsAsync(url, allowFallbackDiscovery, visitedInputs, discoveredSitemaps))
+                await foreach (var discovered in this.DiscoverSitemapDocumentsAsync(url, visitedInputs, discoveredSitemaps))
                 {
                     results.Add(discovered);
                 }

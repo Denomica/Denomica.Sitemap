@@ -21,12 +21,25 @@ namespace Denomica.Sitemap.Services
         /// <param name="clientFactory">The factory used to create an <see cref="HttpClient"/> instance. Must not be <see langword="null"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="clientFactory"/> is <see langword="null"/>.</exception>
         public RobotsTxtParser(IHttpClientFactory clientFactory)
+            : this(clientFactory, new HttpRequestFactory())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RobotsTxtParser"/> class.
+        /// </summary>
+        /// <param name="clientFactory">The factory used to create an <see cref="HttpClient"/> instance. Must not be <see langword="null"/>.</param>
+        /// <param name="requestFactory">The request factory used to create configured <see cref="HttpRequestMessage"/> instances.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any required dependency is <see langword="null"/>.</exception>
+        public RobotsTxtParser(IHttpClientFactory clientFactory, IHttpRequestFactory requestFactory)
         {
             this.Client = clientFactory?.CreateClient(Constants.HttpClientName)
                 ?? throw new ArgumentNullException(nameof(clientFactory), "HttpClientFactory must provide a valid HttpClient.");
+            this.RequestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
         }
 
         private readonly HttpClient Client;
+        private readonly IHttpRequestFactory RequestFactory;
 
         /// <summary>
         /// Asynchronously reads and returns non-empty, non-comment lines from the provided robots.txt content.
@@ -137,10 +150,10 @@ namespace Denomica.Sitemap.Services
         {
             var robotsTxtUrl = new Uri(url, "/robots.txt");
 
-            var request = new HttpRequestMessage(HttpMethod.Get, robotsTxtUrl);
+            using var request = this.RequestFactory.Create(HttpMethod.Get, robotsTxtUrl);
             try
             {
-                var response = await this.Client.SendAsync(request);
+                using var response = await this.Client.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     var contents = await response.Content.ReadAsStringAsync();

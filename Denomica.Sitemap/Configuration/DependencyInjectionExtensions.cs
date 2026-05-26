@@ -17,24 +17,25 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return new DenomicaSitemapConfigurationBuilder(
                 services
+                    .AddSingleton<IHttpRequestFactory, HttpRequestFactory>()
                     .AddSingleton<RobotsTxtParser>()
                     .AddScoped<SitemapCrawler>()
-                    .AddHttpClient(Constants.HttpClientName, client =>
-                    {
-                        client.DefaultRequestHeaders.Add("Accept", "*/*");
-                        client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
-                        client.DefaultRequestHeaders.Add("User-Agent", Constants.DefaultUserAgent);
-                        client.DefaultRequestHeaders.Add("Connection", "keep-alive");
-                    })
-                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-                    {
-                        AllowAutoRedirect = true,
-                        UseCookies = true,
-                        CookieContainer = new CookieContainer(),
-                        UseDefaultCredentials = false,
-                        AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-                    }).Services
+                    .AddHttpClient(Constants.HttpClientName)
+                    .ConfigurePrimaryHttpMessageHandler(CreatePrimaryHttpMessageHandler)
+                    .Services
             );
+        }
+
+        private static HttpMessageHandler CreatePrimaryHttpMessageHandler()
+        {
+            return new HttpClientHandler
+            {
+                AllowAutoRedirect = true,
+                UseCookies = true,
+                CookieContainer = new CookieContainer(),
+                UseDefaultCredentials = false,
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            };
         }
     }
 }

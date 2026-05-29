@@ -7,7 +7,7 @@ namespace Denomica.Sitemap.Configuration
     internal static class Constants
     {
 
-        public const string HttpClientName = "CrawlerHttpClient";
+        public const string HttpClientName = "SitemapCrawlerHttpClient";
         public const string DefaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
         public const string SchemaNamespace1 = "http://www.sitemaps.org/schemas/sitemap/0.9";
         public const string SchemaNamespace2 = "https://www.sitemaps.org/schemas/sitemap/0.9";

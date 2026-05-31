@@ -34,7 +34,15 @@ await foreach(var pageUrl in crawler.CrawlAsync(new Uri("https://yoursite.com"))
 }
 ```
 
-## Version Hightlights
+## Version Highlights
+
+### v1.0.4
+
+- Added configuration support for supplying a custom HttpClient instance from the consuming application for sitemap crawling.
+- Added `IHttpRequestFactory` to centralize HTTP request creation and shared request configuration.
+- Updated both `SitemapCrawler` and `RobotsTxtParser` to use the same configured request creation flow.
+- Applied sample-aligned request defaults for sitemap and robots requests (`HTTP/1.1`, browser user-agent, and browser-like `Accept` and `Connection` headers).
+- Replaced reflection-based request profile behavior with a straightforward reflection-free implementation.
 
 ### v1.0.3
 

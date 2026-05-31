@@ -27,15 +27,32 @@ namespace Denomica.Sitemap.Services
         /// </summary>
         /// <param name="parser">The <see cref="RobotsTxtParser"/> used to parse robots.txt files. Cannot be <see langword="null"/>.</param>
         /// <param name="factory">The <see cref="IHttpClientFactory"/> used to create HTTP clients. Cannot be <see langword="null"/>.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="parser"/> or <paramref name="factory"/> is <see langword="null"/>.</exception>
-        public SitemapCrawler(RobotsTxtParser parser, IHttpClientFactory factory)
+        /// <param name="requestFactory">The request factory used to create configured <see cref="HttpRequestMessage"/> instances.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any required dependency is <see langword="null"/>.</exception>
+        public SitemapCrawler(
+            RobotsTxtParser parser,
+            IHttpClientFactory factory,
+            IHttpRequestFactory requestFactory)
         {
             this.RobotsParser = parser ?? throw new ArgumentNullException(nameof(parser));
             this.Client = factory?.CreateClient(Constants.HttpClientName) ?? throw new ArgumentNullException(nameof(factory));
+            this.RequestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
+        }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SitemapCrawler"/> class.
+        /// </summary>
+        /// <param name="parser">The <see cref="RobotsTxtParser"/> used to parse robots.txt files. Cannot be <see langword="null"/>.</param>
+        /// <param name="factory">The <see cref="IHttpClientFactory"/> used to create HTTP clients. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="parser"/> or <paramref name="factory"/> is <see langword="null"/>.</exception>
+        public SitemapCrawler(RobotsTxtParser parser, IHttpClientFactory factory)
+            : this(parser, factory, new HttpRequestFactory())
+        {
         }
 
         private readonly RobotsTxtParser RobotsParser;
         private readonly HttpClient Client;
+        private readonly IHttpRequestFactory RequestFactory;
 
         /// <summary>
         /// Asynchronously determines whether the specified URL can be crawled for sitemap data.
@@ -407,7 +424,7 @@ namespace Denomica.Sitemap.Services
                 throw new HttpRequestException($"Too many redirects while requesting '{url}'.");
             }
 
-            using var request = new HttpRequestMessage(method, url);
+            using var request = this.RequestFactory.Create(method, url);
             var response = await this.Client.SendAsync(request);
 
             if (response.StatusCode != HttpStatusCode.MovedPermanently

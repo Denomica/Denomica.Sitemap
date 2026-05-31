@@ -67,7 +67,7 @@ namespace Denomica.Sitemap.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves lines from a robots.txt content that are specific to a given user agent.
+        /// Asynchronously retrieves lines from robots.txt content that are specific to a given user agent.
         /// </summary>
         /// <remarks>This method processes the robots.txt content line by line, identifying sections that
         /// apply to the specified user agent. It yields lines that belong to the user agent's section, excluding the

@@ -81,14 +81,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static HttpMessageHandler CreatePrimaryHttpMessageHandler()
         {
-            return new HttpClientHandler
+            HttpMessageHandler handler = new HttpClientHandler
             {
                 AllowAutoRedirect = true,
                 UseCookies = true,
                 CookieContainer = new CookieContainer(),
-                UseDefaultCredentials = false,
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                SslProtocols = System.Security.Authentication.SslProtocols.None
             };
+
+            return handler;
         }
     }
 }
